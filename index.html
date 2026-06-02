@@ -2,569 +2,477 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Recursive Organism</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #060608;
-    --surface: #0d0d10;
-    --border: #1a1a22;
-    --teal: #01696f;
-    --teal-bright: #01a8b0;
-    --teal-dim: rgba(1,105,111,0.25);
-    --teal-glow: rgba(1,168,176,0.12);
-    --white: #f0f0f0;
-    --mid: #888;
-    --dim: #444;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    width: 100%; height: 100%; overflow: hidden;
-    background: var(--bg);
-    color: var(--white);
-    font-family: 'DM Mono', monospace;
-  }
+:root {
+  --bg: #060608;
+  --surface: #0d0d12;
+  --border: #1c1c24;
+  --teal: #01696f;
+  --teal-b: #02b0ba;
+  --teal-dim: rgba(1,105,111,0.18);
+  --teal-glow: rgba(2,176,186,0.08);
+  --white: #efefef;
+  --mid: #777;
+  --dim: #333;
+  --red: #c0392b;
+  --red-dim: rgba(192,57,43,0.12);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-  /* ── LAYOUT ──────────────────────────────── */
-  #app {
-    display: flex;
-    width: 100vw; height: 100vh;
-    position: relative;
-  }
+/* ── TOP BAR ── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  height: 48px;
+  background: rgba(6,6,8,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+#topbar-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+#topbar-tag {
+  font-size: 8px; color: var(--teal);
+  letter-spacing: 0.2em; text-transform: uppercase;
+}
 
-  #diagram-pane {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 1;
-  }
+/* ── HERO ── */
+#hero {
+  padding: 80px 20px 40px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+#hero-label {
+  font-size: 8px; letter-spacing: 0.3em;
+  color: var(--teal); text-transform: uppercase;
+  margin-bottom: 14px;
+}
+#hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 7vw, 52px);
+  font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+#hero h1 span { color: var(--teal-b); }
+#hero-sub {
+  font-size: 11px; color: var(--mid);
+  line-height: 1.7; max-width: 420px;
+  margin: 0 auto 28px;
+}
+.hero-chips {
+  display: flex; gap: 8px;
+  justify-content: center; flex-wrap: wrap;
+}
+.chip {
+  font-size: 8px; letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid var(--teal);
+  color: var(--teal); padding: 5px 12px;
+}
 
-  #detail-pane {
-    width: 0;
-    overflow: hidden;
-    transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-    border-left: 1px solid transparent;
-    display: flex;
-    flex-direction: column;
-    background: var(--surface);
-    position: relative;
-  }
+/* ── ORGANISM DIAGRAM ── */
+#diagram-section {
+  padding: 40px 20px;
+  display: flex; justify-content: center;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+#diagram-section::before {
+  content: 'TAP A NODE';
+  position: absolute; bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px; letter-spacing: 0.25em;
+  color: var(--dim); text-transform: uppercase;
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
 
-  #detail-pane.open {
-    width: 380px;
-    border-left-color: var(--border);
-  }
+#org-svg {
+  width: min(88vw, 420px);
+  height: min(88vw, 420px);
+  overflow: visible;
+}
+.ring { fill: none; }
+.r-mem { stroke: var(--teal); stroke-width: 1.5; }
+.r-iris { stroke: var(--teal); stroke-width: 1; opacity: 0.18; }
+.r-pup { stroke: var(--teal); stroke-width: 1.5; }
+.c-dot { fill: var(--teal); }
 
-  /* ── HEADER ─────────────────────────────── */
-  #header {
-    position: absolute;
-    top: 24px; left: 0; right: 0;
-    text-align: center;
-    z-index: 2;
-    pointer-events: none;
-  }
-  #header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(13px, 2vw, 17px);
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    color: var(--white);
-    text-transform: uppercase;
-  }
-  #header p {
-    font-size: 8px;
-    color: var(--teal);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-top: 4px;
-    opacity: 0.8;
-  }
+.step-g { cursor: pointer; }
+.step-g circle {
+  fill: var(--bg); stroke: var(--teal); stroke-width: 1.2;
+  transition: all 0.22s;
+}
+.step-g text {
+  fill: var(--white);
+  font-family: 'Syne', sans-serif;
+  font-size: 8.5px; font-weight: 700;
+  text-anchor: middle; dominant-baseline: middle;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+.step-g.active circle,
+.step-g:hover circle {
+  fill: var(--teal-dim);
+  stroke: var(--teal-b); stroke-width: 2;
+  filter: drop-shadow(0 0 8px rgba(2,176,186,0.45));
+}
+.step-g.active text { fill: var(--teal-b); }
 
-  /* ── HINT ────────────────────────────────── */
-  #hint {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 8px;
-    color: var(--dim);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    animation: pulse-hint 2.5s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes pulse-hint {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
+.intel-g { cursor: pointer; }
+.intel-g circle {
+  fill: var(--bg); stroke: var(--teal); stroke-width: 1.8;
+  transition: all 0.22s;
+}
+.intel-g .iname {
+  fill: var(--white);
+  font-family: 'Syne', sans-serif;
+  font-size: 8px; font-weight: 800;
+  text-anchor: middle; dominant-baseline: middle;
+  pointer-events: none;
+}
+.intel-g .irole {
+  fill: var(--teal);
+  font-family: 'DM Mono', monospace;
+  font-size: 6px; text-anchor: middle;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+.intel-g.active circle,
+.intel-g:hover circle {
+  fill: var(--teal-dim);
+  stroke: var(--teal-b); stroke-width: 2.2;
+  filter: drop-shadow(0 0 10px rgba(2,176,186,0.5));
+}
+.intel-g.active .iname { fill: var(--teal-b); }
 
-  /* ── SVG DIAGRAM ─────────────────────────── */
-  #organism-svg {
-    width: min(70vh, 88vw);
-    height: min(70vh, 88vw);
-    overflow: visible;
-  }
+.eline {
+  fill: none; stroke: var(--teal);
+  stroke-width: 1; stroke-dasharray: 3 6; opacity: 0.18;
+  transition: opacity 0.2s;
+}
+.eline.active {
+  opacity: 0.65; stroke: var(--teal-b); stroke-dasharray: 4 4;
+  animation: dash 1s linear infinite;
+}
+@keyframes dash { to { stroke-dashoffset: -16; } }
 
-  /* Rings */
-  .ring-membrane { fill: none; stroke: var(--teal); stroke-width: 1.5; }
-  .ring-iris { fill: none; stroke: var(--teal); stroke-width: 1; opacity: 0.2; }
-  .ring-pupil { fill: none; stroke: var(--teal); stroke-width: 1.5; }
-  .center-dot { fill: var(--teal); }
-  .center-dot-outer { fill: none; stroke: var(--teal); stroke-width: 1; opacity: 0.3; }
+.farc {
+  fill: none; stroke: var(--teal);
+  stroke-width: 1; opacity: 0.22;
+}
 
-  /* Rotation arc */
-  .rotation-arc { fill: none; stroke: var(--teal); stroke-width: 1; opacity: 0.25; stroke-dasharray: 3 5; }
-  .rotation-arrow { fill: var(--teal); opacity: 0.35; }
+/* ── MODULE DRAWER ── */
+#drawer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  max-height: 72vh;
+  display: flex; flex-direction: column;
+}
+#drawer.open { transform: translateY(0); }
 
-  /* Steps */
-  .step-node {
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .step-node circle {
-    fill: var(--bg);
-    stroke: var(--teal);
-    stroke-width: 1;
-    transition: all 0.25s;
-  }
-  .step-node text {
-    fill: var(--white);
-    font-family: 'Syne', sans-serif;
-    font-size: 9.5px;
-    font-weight: 700;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    letter-spacing: 0.06em;
-    pointer-events: none;
-  }
-  .step-node:hover circle,
-  .step-node.active circle {
-    fill: var(--teal-dim);
-    stroke: var(--teal-bright);
-    stroke-width: 1.8;
-    filter: drop-shadow(0 0 8px rgba(1,168,176,0.5));
-  }
-  .step-node.active text { fill: var(--teal-bright); }
+#drawer-handle {
+  width: 36px; height: 3px;
+  background: var(--dim);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+#drawer-scroll {
+  overflow-y: auto;
+  padding: 20px 22px 40px;
+  flex: 1;
+}
+#d-tag { font-size: 7px; letter-spacing: 0.25em; color: var(--teal); text-transform: uppercase; margin-bottom: 6px; }
+#d-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+#d-sub { font-size: 9px; color: var(--teal); letter-spacing: 0.12em; text-transform: uppercase; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
 
-  /* Connecting arc segments */
-  .flow-arc { fill: none; stroke: var(--teal); stroke-width: 1; opacity: 0.3; }
-  .flow-arc-active { opacity: 0.7; stroke: var(--teal-bright); }
+.db { margin-bottom: 18px; }
+.db-label { font-size: 7px; letter-spacing: 0.22em; color: var(--teal); text-transform: uppercase; margin-bottom: 6px; }
+.db-text { font-size: 12px; line-height: 1.75; color: #bbb; font-weight: 300; }
+.db-text strong { color: var(--white); font-weight: 500; }
 
-  /* Intelligence nodes */
-  .intel-node {
-    cursor: pointer;
-  }
-  .intel-node circle {
-    fill: var(--bg);
-    stroke: var(--teal);
-    stroke-width: 1.5;
-    transition: all 0.25s;
-  }
-  .intel-node text.name {
-    fill: var(--white);
-    font-family: 'Syne', sans-serif;
-    font-size: 9px;
-    font-weight: 800;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    letter-spacing: 0.05em;
-    pointer-events: none;
-  }
-  .intel-node text.role {
-    fill: var(--teal);
-    font-family: 'DM Mono', monospace;
-    font-size: 6.5px;
-    text-anchor: middle;
-    letter-spacing: 0.15em;
-    pointer-events: none;
-  }
-  .intel-node:hover circle,
-  .intel-node.active circle {
-    fill: var(--teal-dim);
-    stroke: var(--teal-bright);
-    stroke-width: 2;
-    filter: drop-shadow(0 0 10px rgba(1,168,176,0.5));
-  }
-  .intel-node.active text.name { fill: var(--teal-bright); }
+.now-block {
+  background: var(--teal-glow);
+  border: 1px solid rgba(1,105,111,0.35);
+  padding: 14px 16px; margin: 18px 0;
+  font-size: 12px; line-height: 1.7;
+  color: var(--teal-b);
+}
+.now-block::before {
+  content: '▸ RIGHT NOW';
+  display: block; font-size: 7px;
+  letter-spacing: 0.2em; color: var(--teal);
+  margin-bottom: 6px;
+}
+.fail-block {
+  border-left: 2px solid var(--red);
+  padding: 10px 14px;
+  background: var(--red-dim);
+}
+.fail-block::before {
+  content: '⚠ FAILURE MODE';
+  display: block; font-size: 7px;
+  letter-spacing: 0.2em; color: var(--red);
+  margin-bottom: 6px;
+}
+.fail-block p { font-size: 11px; line-height: 1.65; color: #e07070; }
 
-  /* Energy flow lines */
-  .energy-line { fill: none; stroke: var(--teal); stroke-width: 1; stroke-dasharray: 3 6; opacity: 0.2; }
-  .energy-line.active { opacity: 0.6; stroke: var(--teal-bright); stroke-dasharray: 4 4; animation: dash-flow 1.2s linear infinite; }
-  @keyframes dash-flow { to { stroke-dashoffset: -16; } }
+#drawer-close {
+  position: absolute; top: 14px; right: 16px;
+  background: var(--border); border: none;
+  color: var(--mid); width: 26px; height: 26px;
+  cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
 
-  /* ── DETAIL PANE ─────────────────────────── */
-  #detail-inner {
-    padding: 32px 28px 28px;
-    opacity: 0;
-    transition: opacity 0.3s 0.15s;
-    overflow-y: auto;
-    height: 100%;
-  }
-  #detail-pane.open #detail-inner { opacity: 1; }
+/* ── AXIOM SECTION ── */
+#axiom {
+  padding: 40px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+#axiom-text {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(13px, 3.5vw, 18px);
+  font-weight: 700; line-height: 1.5;
+  color: var(--mid);
+  max-width: 500px; margin: 0 auto;
+}
+#axiom-text em { color: var(--teal-b); font-style: normal; }
 
-  #detail-tag {
-    font-size: 7px;
-    letter-spacing: 0.25em;
-    color: var(--teal);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  #detail-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    color: var(--white);
-    margin-bottom: 6px;
-    line-height: 1;
-  }
-  #detail-subtitle {
-    font-size: 9px;
-    color: var(--teal);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 28px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
+/* ── LAWS SECTION ── */
+#laws { padding: 40px 20px; border-bottom: 1px solid var(--border); }
+.section-label {
+  font-size: 7px; letter-spacing: 0.3em;
+  color: var(--teal); text-transform: uppercase;
+  margin-bottom: 20px; text-align: center;
+}
+.law-card {
+  border: 1px solid var(--border);
+  padding: 18px;
+  margin-bottom: 10px;
+  background: var(--surface);
+}
+.law-id { font-size: 7px; letter-spacing: 0.2em; color: var(--teal); margin-bottom: 6px; }
+.law-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.law-text { font-size: 10.5px; line-height: 1.65; color: var(--mid); }
 
-  .detail-block { margin-bottom: 22px; }
-  .detail-block-label {
-    font-size: 7px;
-    letter-spacing: 0.25em;
-    color: var(--teal);
-    text-transform: uppercase;
-    margin-bottom: 7px;
-  }
-  .detail-block-content {
-    font-size: 11.5px;
-    line-height: 1.7;
-    color: #c8c8c8;
-    font-weight: 300;
-  }
-  .detail-block-content strong {
-    color: var(--white);
-    font-weight: 500;
-  }
+/* ── FOOTER ── */
+#footer {
+  padding: 28px 20px;
+  text-align: center;
+}
+#footer p { font-size: 8px; color: var(--dim); letter-spacing: 0.15em; text-transform: uppercase; margin: 4px 0; }
+#footer a { color: var(--teal); text-decoration: none; }
 
-  .detail-action {
-    background: var(--teal-glow);
-    border: 1px solid var(--teal-dim);
-    padding: 14px 16px;
-    margin: 22px 0;
-    font-size: 12px;
-    line-height: 1.65;
-    color: var(--teal-bright);
+/* ── DESKTOP LAYOUT ── */
+@media (min-width: 768px) {
+  #drawer {
+    position: fixed;
+    right: 0; top: 48px; bottom: 0; left: auto;
+    width: 380px; max-height: 100%;
+    border-top: none;
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
   }
-
-  .detail-action::before {
-    content: '▸ NOW:';
-    display: block;
-    font-size: 7px;
-    letter-spacing: 0.2em;
-    color: var(--teal);
-    margin-bottom: 6px;
-  }
-
-  .failure-block {
-    border-left: 2px solid #ff4444;
-    padding: 10px 14px;
-    margin-top: 22px;
-    background: rgba(255,68,68,0.05);
-  }
-  .failure-block::before {
-    content: '⚠ FAILURE MODE';
-    display: block;
-    font-size: 7px;
-    letter-spacing: 0.2em;
-    color: #ff4444;
-    margin-bottom: 6px;
-  }
-  .failure-block p {
-    font-size: 10.5px;
-    line-height: 1.6;
-    color: #ff7777;
-  }
-
-  #close-btn {
-    position: absolute;
-    top: 18px; right: 18px;
-    width: 28px; height: 28px;
-    background: var(--border);
-    border: none;
-    color: var(--mid);
-    cursor: pointer;
-    font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-    z-index: 10;
-  }
-  #close-btn:hover { background: var(--teal-dim); color: var(--white); }
-
-  /* ── MOBILE ──────────────────────────────── */
-  @media (max-width: 640px) {
-    #detail-pane.open {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      width: 100% !important;
-      height: 65vh;
-      border-left: none;
-      border-top: 1px solid var(--border);
-    }
-    #organism-svg {
-      width: min(85vw, 75vh);
-      height: min(85vw, 75vh);
-    }
-  }
+  #drawer.open { transform: translateX(0); }
+  #drawer-handle { display: none; }
+  #diagram-section { padding: 60px 20px; }
+  #hero { padding: 100px 40px 60px; }
+}
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="diagram-pane">
-    <div id="header">
-      <h1>The Recursive Organism</h1>
-      <p>Tap a node to expand its module</p>
-    </div>
 
-    <svg id="organism-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#01a8b0" opacity="0.6"/>
-        </marker>
-      </defs>
+<div id="topbar">
+  <div id="topbar-title">The Recursive Organism</div>
+  <div id="topbar-tag">GYS · SYNAPTIC</div>
+</div>
 
-      <!-- RINGS -->
-      <circle cx="250" cy="250" r="220" class="ring-membrane"/>
-      <circle cx="250" cy="250" r="168" class="ring-iris"/>
-      <circle cx="250" cy="250" r="128" class="ring-iris"/>
-      <circle cx="250" cy="250" r="82"  class="ring-pupil"/>
-
-      <!-- CENTER -->
-      <circle cx="250" cy="250" r="22"  class="center-dot-outer"/>
-      <circle cx="250" cy="250" r="5"   class="center-dot"/>
-
-      <!-- FLOW ARCS between steps (drawn on ring r=105) -->
-      <!-- Arc segments connecting each step around the circle -->
-      <path id="arc-0" class="flow-arc" d="M 250,145 A 105,105 0 0,1 341,197"/>
-      <path id="arc-1" class="flow-arc" d="M 341,197 A 105,105 0 0,1 341,303"/>
-      <path id="arc-2" class="flow-arc" d="M 341,303 A 105,105 0 0,1 250,355"/>
-      <path id="arc-3" class="flow-arc" d="M 250,355 A 105,105 0 0,1 159,303"/>
-      <path id="arc-4" class="flow-arc" d="M 159,303 A 105,105 0 0,1 159,197"/>
-      <path id="arc-5" class="flow-arc" d="M 159,197 A 105,105 0 0,1 250,145"/>
-
-      <!-- ENERGY LINES from intelligences to center -->
-      <line id="el-ai"       class="energy-line" x1="250" y1="30"  x2="250" y2="228"/>
-      <line id="el-synaptic" class="energy-line" x1="441" y1="360" x2="272" y2="262"/>
-      <line id="el-emoney"   class="energy-line" x1="59"  y1="360" x2="228" y2="262"/>
-
-      <!-- FLYWHEEL STEPS — positioned on r=105 ring -->
-      <!-- EXECUTE (top, 270°) -->
-      <g class="step-node" data-id="execute" onclick="selectNode('execute')">
-        <circle cx="250" cy="145" r="28"/>
-        <text x="250" y="145">EXECUTE</text>
-      </g>
-      <!-- RECORD (top-right, 330°) -->
-      <g class="step-node" data-id="record" onclick="selectNode('record')">
-        <circle cx="341" cy="197" r="28"/>
-        <text x="341" y="197">RECORD</text>
-      </g>
-      <!-- EVALUATE (bottom-right, 30°) -->
-      <g class="step-node" data-id="evaluate" onclick="selectNode('evaluate')">
-        <circle cx="341" cy="303" r="28"/>
-        <text x="341" y="303">EVALUATE</text>
-      </g>
-      <!-- MODIFY (bottom, 90°) -->
-      <g class="step-node" data-id="modify" onclick="selectNode('modify')">
-        <circle cx="250" cy="355" r="28"/>
-        <text x="250" y="355">MODIFY</text>
-      </g>
-      <!-- STANDARDIZE (bottom-left, 150°) -->
-      <g class="step-node" data-id="standardize" onclick="selectNode('standardize')">
-        <circle cx="159" cy="303" r="28"/>
-        <text x="159" y="301">STD.</text>
-      </g>
-      <!-- CYCLE (top-left, 210°) -->
-      <g class="step-node" data-id="cycle" onclick="selectNode('cycle')">
-        <circle cx="159" cy="197" r="28"/>
-        <text x="159" y="197">CYCLE</text>
-      </g>
-
-      <!-- INTELLIGENCE NODES on membrane -->
-      <!-- AI (top, 90° = 270° standard) -->
-      <g class="intel-node" data-id="ai" onclick="selectNode('ai')">
-        <circle cx="250" cy="30" r="30"/>
-        <text class="name" x="250" y="27">AI</text>
-        <text class="role" x="250" y="40">COMPUTE</text>
-      </g>
-      <!-- SYNAPTIC (bottom-right) -->
-      <g class="intel-node" data-id="synaptic" onclick="selectNode('synaptic')">
-        <circle cx="441" cy="360" r="30"/>
-        <text class="name" x="441" y="357">SYN</text>
-        <text class="role" x="441" y="370">STRUCTURE</text>
-      </g>
-      <!-- EMONEY (bottom-left) -->
-      <g class="intel-node" data-id="emoney" onclick="selectNode('emoney')">
-        <circle cx="59" cy="360" r="30"/>
-        <text class="name" x="59" y="357">EM</text>
-        <text class="role" x="59" y="370">FORCE</text>
-      </g>
-    </svg>
-
-    <div id="hint">tap any node</div>
+<section id="hero">
+  <div id="hero-label">Operating Framework · v2.0</div>
+  <h1>The <span>Recursive</span><br>Organism</h1>
+  <p id="hero-sub">A self-evolving system that converts every action into compounding intelligence. Tap any node to enter its module.</p>
+  <div class="hero-chips">
+    <span class="chip">Execute</span>
+    <span class="chip">Record</span>
+    <span class="chip">Evaluate</span>
+    <span class="chip">Modify</span>
+    <span class="chip">Standardize</span>
+    <span class="chip">Cycle</span>
   </div>
+</section>
 
-  <!-- DETAIL PANE -->
-  <div id="detail-pane">
-    <button id="close-btn" onclick="closePane()">✕</button>
-    <div id="detail-inner">
-      <div id="detail-tag"></div>
-      <div id="detail-title"></div>
-      <div id="detail-subtitle"></div>
-      <div id="detail-body"></div>
-    </div>
+<section id="diagram-section">
+  <svg id="org-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+    <!-- Rings -->
+    <circle cx="250" cy="250" r="218" class="ring r-mem"/>
+    <circle cx="250" cy="250" r="165" class="ring r-iris"/>
+    <circle cx="250" cy="250" r="125" class="ring r-iris"/>
+    <circle cx="250" cy="250" r="80"  class="ring r-pup"/>
+    <circle cx="250" cy="250" r="5"   class="c-dot"/>
+    <!-- Flow arcs -->
+    <path class="farc" d="M250,145 A105,105 0 0,1 341,197"/>
+    <path class="farc" d="M341,197 A105,105 0 0,1 341,303"/>
+    <path class="farc" d="M341,303 A105,105 0 0,1 250,355"/>
+    <path class="farc" d="M250,355 A105,105 0 0,1 159,303"/>
+    <path class="farc" d="M159,303 A105,105 0 0,1 159,197"/>
+    <path class="farc" d="M159,197 A105,105 0 0,1 250,145"/>
+    <!-- Energy lines -->
+    <line id="el-ai"       class="eline" x1="250" y1="32"  x2="250" y2="226"/>
+    <line id="el-synaptic" class="eline" x1="439" y1="359" x2="272" y2="262"/>
+    <line id="el-emoney"   class="eline" x1="61"  y1="359" x2="228" y2="262"/>
+    <!-- Flywheel steps (r=105) -->
+    <g class="step-g" data-id="execute"     onclick="open_node('execute')">    <circle cx="250" cy="145" r="27"/><text x="250" y="145">EXECUTE</text></g>
+    <g class="step-g" data-id="record"      onclick="open_node('record')">     <circle cx="341" cy="197" r="27"/><text x="341" y="197">RECORD</text></g>
+    <g class="step-g" data-id="evaluate"    onclick="open_node('evaluate')">   <circle cx="341" cy="303" r="27"/><text x="341" y="303">EVALUATE</text></g>
+    <g class="step-g" data-id="modify"      onclick="open_node('modify')">     <circle cx="250" cy="355" r="27"/><text x="250" y="355">MODIFY</text></g>
+    <g class="step-g" data-id="standardize" onclick="open_node('standardize')"><circle cx="159" cy="303" r="27"/><text x="159" y="301">STD.</text></g>
+    <g class="step-g" data-id="cycle"       onclick="open_node('cycle')">      <circle cx="159" cy="197" r="27"/><text x="159" y="197">CYCLE</text></g>
+    <!-- Intelligence nodes (on membrane) -->
+    <g class="intel-g" data-id="ai"       onclick="open_node('ai')">      <circle cx="250" cy="32"  r="32"/><text class="iname" x="250" y="29">AI</text><text class="irole" x="250" y="42">COMPUTE</text></g>
+    <g class="intel-g" data-id="synaptic" onclick="open_node('synaptic')"><circle cx="439" cy="359" r="32"/><text class="iname" x="439" y="356">SYN</text><text class="irole" x="439" y="369">STRUCTURE</text></g>
+    <g class="intel-g" data-id="emoney"   onclick="open_node('emoney')">  <circle cx="61"  cy="359" r="32"/><text class="iname" x="61"  y="356">EM</text><text class="irole" x="61"  y="369">FORCE</text></g>
+  </svg>
+</section>
+
+<section id="axiom">
+  <p id="axiom-text">
+    A <em>system</em> follows rules.<br>
+    An <em>organism</em> evolves them.<br>
+    The difference is <em>recursive intelligence.</em>
+  </p>
+</section>
+
+<section id="laws">
+  <div class="section-label">Governing Laws</div>
+  <div class="law-card">
+    <div class="law-id">SYNAPTIC_LAW_001</div>
+    <div class="law-name">The Law of Human Primacy</div>
+    <div class="law-text">Tip-of-spear B2B sales activities — finding, reading, and getting in front of a prospect — are irreducibly human. Automation supports. It cannot replace.</div>
+  </div>
+  <div class="law-card">
+    <div class="law-id">SYNAPTIC_LAW_002</div>
+    <div class="law-name">The Recursive Flywheel</div>
+    <div class="law-text">Every action generates one data point. Every data point feeds the next cycle. The organism does not repeat — it compounds. Execute → Record → Evaluate → Modify → Standardize → Cycle.</div>
+  </div>
+</section>
+
+<div id="footer">
+  <p>SYNAPTIC · GROW YOUR SHOP · EMONEY-999</p>
+  <p><a href="https://emoney-999.github.io/organism">emoney-999.github.io/organism</a></p>
+</div>
+
+<!-- DRAWER -->
+<div id="drawer">
+  <div id="drawer-handle" onclick="close_drawer()"></div>
+  <button id="drawer-close" onclick="close_drawer()">✕</button>
+  <div id="drawer-scroll">
+    <div id="d-tag"></div>
+    <div id="d-title"></div>
+    <div id="d-sub"></div>
+    <div id="d-body"></div>
   </div>
 </div>
 
 <script>
-const NODES = {
-  execute: {
-    tag: "Flywheel · Stage 01",
-    title: "EXECUTE",
-    subtitle: "Take the action. Full commitment. No half-measures.",
-    what: "You have a standard. You have a target. You go. This is the moment where all preparation converts into reality. The flywheel starts here.",
-    now: "Pick up the phone. Send the demo link. Book the call. Do the one thing on your list right now — not after one more prep.",
-    gys: "You are in <strong>EXECUTE</strong> every time you dial. Every call is a unit of execution. One dial = one data point entering the system.",
-    failure: "You are stuck in prep. You're updating the script instead of running it. You're optimizing before you have data. Preparation without execution is just delay."
-  },
-  record: {
-    tag: "Flywheel · Stage 02",
-    title: "RECORD",
-    subtitle: "Capture exactly what happened. No interpretation yet.",
-    what: "The action is done. Now you freeze the outcome before your brain rewrites it. You are collecting raw data — not stories, not excuses. What <em>actually</em> happened.",
-    now: "Log it immediately. STRIKE_LIST: RESULT + VM_LEFT + SIGNAL + one-word objection bucket. Do not skip this. Memory is not record.",
-    gys: "After every call: open STRIKE_LIST, fill the post-call columns. One line. Thirty seconds. This is how the system learns.",
-    failure: "You skip logging because 'you'll remember.' You don't. After 20 calls, the data is gone and the patterns die with it. The flywheel cannot spin without fuel."
-  },
-  evaluate: {
-    tag: "Flywheel · Stage 03",
-    title: "EVALUATE",
-    subtitle: "Look at the data. Find the signal inside the noise.",
-    what: "You have records. Now you read them. You are not looking for a story — you are looking for a pattern. What keeps showing up? What is the system trying to tell you?",
-    now: "After 10+ data points: scan your STRIKE_LIST. What's the most common objection? Where do leads go cold? One pattern is enough to act on.",
-    gys: "Review SIGNAL scores. If most leads are 3–5, the hook isn't working. If leads qualify but don't close, the CAM flow needs adjustment. Let the data speak.",
-    failure: "You evaluate after 1–2 calls. That's not signal, that's noise. Or you never evaluate — you just keep executing the same broken loop forever."
-  },
-  modify: {
-    tag: "Flywheel · Stage 04",
-    title: "MODIFY",
-    subtitle: "Change one variable. Exactly one. Not three.",
-    what: "You've identified a pattern. Now you make a decision: what one thing do you change? You are a scientist. You change one variable so you know what moved the needle.",
-    now: "Identify the one thing. Change the opener, or the timing, or the hook framing. Change ONE thing and be able to name it.",
-    gys: "If the hook isn't landing: modify the first 10 seconds of Standard V4. If the demo isn't converting: modify the CAM_CLOSE guarantee language. One thing at a time.",
-    failure: "You change everything at once after a bad day. Now you don't know what fixed it — or what broke it. You've destroyed the signal. You're back to zero data."
-  },
-  standardize: {
-    tag: "Flywheel · Stage 05",
-    title: "STANDARDIZE",
-    subtitle: "Lock the improvement in. Make it permanent.",
-    what: "The change worked. Now you make it official. If you don't write it down, it doesn't exist. The next version of you needs to operate from the new standard — not from memory.",
-    now: "Update Standard V4, or Gem 4's prompt, or DOCTRINE.md. Wherever the change lives: update the source of truth. The improvement must survive your next bad day.",
-    gys: "The GYS knowledge system IS your STANDARDIZE layer. Every improvement that doesn't make it into ODIN's project files is eventually lost. Write it down.",
-    failure: "You improve mentally but never write it down. Three weeks later, you're running the old script again. The drift is invisible until you're back at the beginning."
-  },
-  cycle: {
-    tag: "Flywheel · Stage 06",
-    title: "CYCLE",
-    subtitle: "The loop closes. You go again — better.",
-    what: "You have a new standard. The flywheel has completed one revolution. You return to EXECUTE, but you are not the same operator who started. The loop compounds.",
-    now: "You have the updated standard in hand. Go back to EXECUTE. The next call is the first call of the improved cycle.",
-    gys: "This is how GYS gets sharper with every call. Call 1 → data → improvement → Call 2 is better. By call 50, the system is unrecognizable. This is the compounding that wins.",
-    failure: "You wait to cycle until everything is perfect. There is no perfect. The flywheel only has value in motion. Sitting still is the only failure mode here."
-  },
-  ai: {
-    tag: "Intelligence Layer · Compute",
-    title: "AI",
-    subtitle: "Computational force. The layer that processes what you can't.",
-    what: "AI handles scale, pattern recognition, and optimization at speeds and volumes no human can match. It doesn't get tired. It doesn't forget. It doesn't get emotional after a bad call.",
-    now: "Feed it clean data. The AI layer (Claude, Gemini, ODIN) is only as good as what you put in. Your RECORD discipline is the fuel for this engine.",
-    gys: "Gem 1 → Gem 2 → Gem 4 → ODIN. Lead creation, enrichment, hook generation, call card output, CRM intelligence. The entire pipeline is your AI layer in motion.",
-    failure: "You stop logging. The AI layer loses its input. It can't learn from calls you didn't record. It can't find patterns in data that doesn't exist."
-  },
-  synaptic: {
-    tag: "Intelligence Layer · Structure",
-    title: "SYNAPTIC",
-    subtitle: "The philosophy layer. The laws that prevent drift.",
-    what: "SYNAPTIC is the structural intelligence — the accumulated frameworks, laws, and doctrines that encode hard-won learning. Without it, every generation of the loop starts from scratch.",
-    now: "When you're confused about what to do: go to DOCTRINE.md. The answer is already there. If it's not there, write it after you figure it out.",
-    gys: "SYNAPTIC_LAW_001 (Human Primacy), SYNAPTIC_LAW_002 (Recursive Flywheel), DOCTRINE, ICP, ASPI_KERNEL — these are the crystallized laws. They exist so you don't re-learn the same lesson twice.",
-    failure: "You ignore the laws when under pressure. You blend scripts that should stay separate. You break LMRD rules. Every time you violate a law, you pay the tax the law was written to eliminate."
-  },
-  emoney: {
-    tag: "Intelligence Layer · Force",
-    title: "EMONEY",
-    subtitle: "The irreducible human force. Creativity. Conviction. Presence.",
-    what: "This is you. The operator. The one who reads the room in real-time, transfers conviction across a phone line, and makes decisions no system can make. This is the tip of the spear.",
-    now: "Stop waiting for a perfect system to execute a perfect call. You are the creative force. The system exists to support you, not replace you. Pick up the phone.",
-    gys: "SYNAPTIC_LAW_001 exists because of this node. Finding, reading, and getting in front of a prospect is irreducibly human. AI sets the table. You close the deal.",
-    failure: "You outsource your judgment to the system. You wait for Gem 4 to tell you how to feel about a lead. You lose the conviction that makes the call land. The system amplifies force — it cannot generate it."
-  }
+const DATA = {
+  execute:{tag:"Flywheel · Stage 01",title:"EXECUTE",sub:"Take the action. Full commitment.",
+    what:"You have a standard. You have a target. You go. All preparation converts into reality here. The flywheel starts and ends with this node.",
+    now:"Pick up the phone. Send the demo link. Do the one thing on your list. Not after one more prep — right now.",
+    gys:"Every dial is one unit of execution. One call = one data point entering the organism. You are in EXECUTE every time you pick up the phone.",
+    fail:"You are stuck in prep. Updating the script instead of running it. Optimizing before you have data. Preparation without execution is expensive delay."},
+  record:{tag:"Flywheel · Stage 02",title:"RECORD",sub:"Capture what happened. No interpretation yet.",
+    what:"The action is done. Freeze the outcome before your brain rewrites it. You are collecting raw data — not stories, not excuses. What actually happened.",
+    now:"Open STRIKE_LIST. Fill: RESULT + VM_LEFT + SIGNAL + one objection word. One line. Thirty seconds. Do it immediately.",
+    gys:"Post-call logging is the fuel for the entire system. Without it, the AI layer has nothing to analyze, SYNAPTIC has nothing to formalize, and the organism cannot evolve.",
+    fail:"You skip logging because you'll remember. You don't. After 20 calls the data is gone and the patterns die with it."},
+  evaluate:{tag:"Flywheel · Stage 03",title:"EVALUATE",sub:"Find the signal inside the noise.",
+    what:"You have records. Now you read them. Not looking for a story — looking for a pattern. What keeps showing up? What is the data trying to tell you?",
+    now:"After 10+ data points: scan STRIKE_LIST. What is the most common objection bucket? Where do leads go cold? One clear pattern is enough to act on.",
+    gys:"Review SIGNAL scores. If most leads are 3–5, the hook is not landing. If leads qualify but don't close, the CAM flow needs work. Let the data lead.",
+    fail:"You evaluate after 1–2 calls. That's noise, not signal. Or you never evaluate — you keep executing the same broken loop and call it persistence."},
+  modify:{tag:"Flywheel · Stage 04",title:"MODIFY",sub:"Change one variable. Exactly one.",
+    what:"You've identified a pattern. Now you make one decision: what one thing do you change? You are a scientist. One variable moved so you know what moved the needle.",
+    now:"Name the one thing. Change the opener, or the timing, or the hook frame. One change. Be able to say exactly what it is.",
+    gys:"Hook not landing: modify the first 10 seconds of Standard V4. Demo not converting: modify the CAM_CLOSE guarantee language. One thing at a time, always.",
+    fail:"You change everything after a bad day. Now you don't know what fixed it — or broke it. Signal destroyed. Back to zero data."},
+  standardize:{tag:"Flywheel · Stage 05",title:"STANDARDIZE",sub:"Lock the improvement in permanently.",
+    what:"The change worked. Now make it official. If you don't write it down, it doesn't exist. The next version of you needs to run the new standard — not the old memory.",
+    now:"Update Standard V4, Gem 4's prompt, or DOCTRINE.md. Wherever the change lives — update the source of truth. The improvement must survive your next bad day.",
+    gys:"The GYS knowledge system IS your STANDARDIZE layer. Every improvement not in ODIN's project files is eventually lost. Write it down. Lock it in.",
+    fail:"You improve mentally but never write it down. Three weeks later you're running the old script again. The drift is invisible until you're back at the beginning."},
+  cycle:{tag:"Flywheel · Stage 06",title:"CYCLE",sub:"The loop closes. You go again — better.",
+    what:"You have a new standard. One revolution is complete. Return to EXECUTE — but you are not the same operator who started. The loop does not repeat. It compounds.",
+    now:"You have the updated standard. Go back to EXECUTE. The next call is the first call of the improved cycle. Do not wait for perfect.",
+    gys:"Call 1 → data → improvement → Call 2 is better. By call 50 the system is unrecognizable from where you started. This compounding is the only moat that matters.",
+    fail:"You wait to cycle until everything is perfect. There is no perfect. The flywheel only has value in motion. Sitting still is the only real failure."},
+  ai:{tag:"Intelligence Layer · Compute",title:"AI",sub:"Computational force. Scale without fatigue.",
+    what:"AI handles pattern recognition and optimization at speeds and volumes no human can match. It does not get tired. It does not get emotional after a bad call. It learns.",
+    now:"Feed it clean data. The AI layer is only as powerful as what you put in. Your RECORD discipline is the fuel. Garbage in, garbage out.",
+    gys:"Gem 1 → Gem 2 → Gem 4 → ODIN. Lead creation, enrichment, hook generation, call card output, CRM intelligence. This is the AI layer running live inside GYS.",
+    fail:"You stop logging. The AI layer loses its input. It cannot learn from calls you did not record. It cannot find patterns in data that does not exist."},
+  synaptic:{tag:"Intelligence Layer · Structure",title:"SYNAPTIC",sub:"The philosophy layer. Laws that prevent drift.",
+    what:"SYNAPTIC is the structural intelligence — accumulated frameworks, laws, and doctrines that encode hard-won learning. Without it, every cycle starts from scratch.",
+    now:"When confused about what to do: go to DOCTRINE.md. The answer is already there. If it's not, write it after you figure it out. That is SYNAPTIC in motion.",
+    gys:"LAW_001 (Human Primacy) + LAW_002 (Recursive Flywheel) + DOCTRINE + ICP + ASPI_KERNEL. These are crystallized laws. They exist so you never re-learn the same lesson twice.",
+    fail:"You ignore the laws under pressure. You blend scripts that must stay separate. You violate LMRD. Every law violation costs exactly what the law was written to prevent."},
+  emoney:{tag:"Intelligence Layer · Force",title:"EMONEY",sub:"The irreducible human. Conviction. Presence.",
+    what:"This is you. The operator. The one who reads the room, transfers certainty across a phone line, and makes calls no system can make. The tip of the spear.",
+    now:"Stop waiting for perfect conditions. You are the creative force. The system exists to amplify you — not replace you. Pick up the phone.",
+    gys:"LAW_001 exists because of this node. Finding, reading, and getting in front of a prospect is irreducibly human. AI sets the table. EMONEY closes the deal.",
+    fail:"You outsource your judgment to the system. You wait for Gem 4 to tell you how to feel about a lead. You lose the conviction that makes the call land. Force cannot be automated."}
 };
 
-let currentNode = null;
-
-function selectNode(id) {
-  const data = NODES[id];
-  if (!data) return;
-
-  // Deactivate previous
-  document.querySelectorAll('.step-node, .intel-node').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.energy-line').forEach(l => l.classList.remove('active'));
-
-  // Activate current
-  const el = document.querySelector(`[data-id="${id}"]`);
-  if (el) el.classList.add('active');
-
-  // Activate energy line if intelligence node
-  if (['ai','synaptic','emoney'].includes(id)) {
-    const line = document.getElementById(`el-${id}`);
-    if (line) line.classList.add('active');
+function open_node(id) {
+  const d = DATA[id];
+  // Deactivate all
+  document.querySelectorAll('.step-g,.intel-g').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.eline').forEach(l=>l.classList.remove('active'));
+  // Activate
+  document.querySelector(`[data-id="${id}"]`).classList.add('active');
+  if(['ai','synaptic','emoney'].includes(id)){
+    const l=document.getElementById(`el-${id}`);
+    if(l)l.classList.add('active');
   }
-
-  // Populate detail pane
-  document.getElementById('detail-tag').textContent = data.tag;
-  document.getElementById('detail-title').textContent = data.title;
-  document.getElementById('detail-subtitle').textContent = data.subtitle;
-
-  document.getElementById('detail-body').innerHTML = `
-    <div class="detail-block">
-      <div class="detail-block-label">What it is</div>
-      <div class="detail-block-content">${data.what}</div>
-    </div>
-    <div class="detail-action">${data.now}</div>
-    <div class="detail-block">
-      <div class="detail-block-label">In GYS</div>
-      <div class="detail-block-content">${data.gys}</div>
-    </div>
-    <div class="failure-block"><p>${data.failure}</p></div>
-  `;
-
-  document.getElementById('detail-pane').classList.add('open');
-  document.getElementById('hint').style.opacity = '0';
-  currentNode = id;
+  document.getElementById('d-tag').textContent=d.tag;
+  document.getElementById('d-title').textContent=d.title;
+  document.getElementById('d-sub').textContent=d.sub;
+  document.getElementById('d-body').innerHTML=`
+    <div class="db"><div class="db-label">What it is</div><div class="db-text">${d.what}</div></div>
+    <div class="now-block">${d.now}</div>
+    <div class="db"><div class="db-label">In GYS</div><div class="db-text">${d.gys}</div></div>
+    <div class="fail-block"><p>${d.fail}</p></div>`;
+  document.getElementById('drawer').classList.add('open');
 }
 
-function closePane() {
-  document.getElementById('detail-pane').classList.remove('open');
-  document.querySelectorAll('.step-node, .intel-node').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.energy-line').forEach(l => l.classList.remove('active'));
-  document.getElementById('hint').style.opacity = '1';
-  currentNode = null;
+function close_drawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.querySelectorAll('.step-g,.intel-g').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.eline').forEach(l=>l.classList.remove('active'));
 }
 </script>
 </body>
